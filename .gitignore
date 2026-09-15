@@ -1,0 +1,37 @@
+# Copyrighted / third-party material kept locally only (never commit)
+*.pdf
+*.docx
+*.pptx
+sv-tutorial/
+
+# Simulator droppings
+work/
+transcript
+vsim.wlf
+*.wlf
+*.vstf
+*.db
+*.dbg
+modelsim.ini
+*.log
+simv*
+csrc/
+ucli.key
+xcelium.d/
+obj_dir/
+*.vcd
+*.fsdb
+coverage_report/
+*.ucdb
+
+# Formal
+*_sby/
+*.sby.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local compile-check scratch
+scripts/work_check/
