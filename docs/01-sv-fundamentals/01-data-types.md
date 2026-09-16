@@ -36,6 +36,37 @@ procedural block *or* one continuous assignment. A `wire` can have multiple driv
 conflict) and is required for tri-state buses and for `inout` ports. In testbenches you almost only
 need `logic`. `reg` is a Verilog-2001 synonym for `logic`; do not use it in new code.
 
+## Identifiers: what you may call things
+
+Rules from IEEE 1800-2023 clause 5.6, short enough to know cold:
+
+- **First character: a letter or `_`. Never a digit.** Remaining characters: letters, digits, `_`,
+  `$`. Case-sensitive: `data`, `Data`, `DATA` are three names. No length limit; every character is
+  significant.
+- **`$` inside a name is legal but avoid it.** It reads like a system task, and linters flag it.
+- **Reserved words are off-limits**, and SV added ~150 to Verilog's list. The ones that break legacy
+  code compiled with `-sv`: `bit`, `byte`, `int`, `logic`, `class`, `do`, `ref`, `type`, `bind`,
+  `cover`, `expect`, `priority`, `unique`, `soft`, `global`, `let`, `checker`, `until`, `matches`,
+  `tagged`, `implements`, `nettype`. `reg do;` was fine in Verilog-2001 and is a syntax error now.
+- **Escaped identifiers** allow anything: a backslash, then any printable characters, **terminated
+  by whitespace** (the space before `;` is part of the syntax). You will meet them in gate-level
+  netlists and generated code (`\U_CORE/reg[3] `); never write them by hand.
+- **`$name` and `` `NAME`` are separate namespaces.** You cannot define your own `$foo` in
+  SystemVerilog (only through DPI); macro names after `` `define `` follow the simple-identifier
+  rules above.
+
+```systemverilog
+addr_t   arr3d   _tmp   pkt_q   data$valid      // legal
+3d_array   my-var   $count   éclair             // illegal: digit first, hyphen, $ first, non-ASCII
+wire \3d_array ;   \3d_array = 1;               // legal via escaping; note the trailing space
+```
+
+Conventions are not rules, but reviewers and interviewers notice them: types end in `_t`, enum
+literals and parameters are `UPPER_CASE`, everything else is `lower_snake_case`; active-low signals
+end in `_n`, interfaces in `_if`, packages in `_pkg`; never start a user name with `uvm_` (collides
+with the library) or `_` (conventionally "internal"). A class is named for the noun it models
+(`fifo_txn`), not for what it is (`fifo_transaction_class`).
+
 ## Packed vs. unpacked arrays
 
 This distinction is about *memory layout* and *what operations are allowed*.
@@ -85,8 +116,9 @@ module scratch;
 endmodule
 ```
 
-1. **Identifiers cannot start with a digit.** `3d_array` is a syntax error. Call it `cube` or
-   `arr3d`. This is the only line the compiler rejects; fix it and the rest compiles cleanly.
+1. **Identifiers cannot start with a digit** (rules above). `3d_array` is a syntax error. Call it
+   `cube` or `arr3d`. This is the only line the compiler rejects; fix it and the rest compiles
+   cleanly.
 2. **Three packed dimensions make one vector, not a cube of elements.** `logic [0:7][0:7][0:7]` is
    a single 512-bit value that you can slice as `[plane][row][bit]`. If you wanted 64 separate bytes,
    the dimensions belong *after* the name: `logic [7:0] cube [8][8]`. Also, `[0:7]` puts index 0 at

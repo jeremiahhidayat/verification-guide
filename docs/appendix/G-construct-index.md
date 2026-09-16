@@ -81,6 +81,7 @@ endmodule
 
 | Construct | What it is | Explained in |
 |---|---|---|
+| Identifiers, reserved words, `\escaped ` names | What a name may look like; the SV keywords that break old Verilog | [1.1 Identifiers](../01-sv-fundamentals/01-data-types.md#identifiers-what-you-may-call-things) |
 | `logic`, `bit`, `wire`, `reg` | 4-state vs 2-state, variable vs net | [1.1 Data types](../01-sv-fundamentals/01-data-types.md) |
 | `always_ff`, `always_comb`, `<=` vs `=` | RTL process types, nonblocking vs blocking | [1.2 Procedural blocks](../01-sv-fundamentals/02-procedural-blocks-and-assignments.md) |
 | `task`, `automatic`, `ref` | Time-consuming subroutines, re-entrancy, pass by reference | [1.4 Tasks, functions, scope](../01-sv-fundamentals/04-tasks-functions-and-scope.md) |
