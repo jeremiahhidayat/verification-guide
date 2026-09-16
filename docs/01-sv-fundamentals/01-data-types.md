@@ -70,6 +70,71 @@ int primes [5] = '{2, 3, 5, 7, 11};
 logic [7:0] zeros [4] = '{default: '0};     // every element 0
 ```
 
+### Worked example: a "3-D array" that compiles and still lies to you
+
+Here is a snippet of the kind a beginner writes to try out multi-dimensional arrays. It has four
+problems; only one of them is caught by the compiler.
+
+```systemverilog
+module scratch;
+  initial begin
+    logic [0:7][0:7][0:7] 3d_array;         // (1) illegal name  (2) this is PACKED: one 512-bit vector
+    3d_array <= {8'hf, 8'hf, 8'hf};         // (3) NBA in an initial  (4) 24 bits into 512: zero-extended
+    $display("array data = %p", 3d_array);  // prints all X: the NBA has not happened yet
+  end
+endmodule
+```
+
+1. **Identifiers cannot start with a digit.** `3d_array` is a syntax error. Call it `cube` or
+   `arr3d`. This is the only line the compiler rejects; fix it and the rest compiles cleanly.
+2. **Three packed dimensions make one vector, not a cube of elements.** `logic [0:7][0:7][0:7]` is
+   a single 512-bit value that you can slice as `[plane][row][bit]`. If you wanted 64 separate bytes,
+   the dimensions belong *after* the name: `logic [7:0] cube [8][8]`. Also, `[0:7]` puts index 0 at
+   the MSB; the hardware convention is `[7:0]`, and mixing the two is a classic source of
+   off-by-reversal bugs.
+3. **Nonblocking assignment then `$display` in the same step prints the *old* value.** `<=`
+   schedules the update for the NBA region; `$display` runs now, in the Active region, and sees the
+   uninitialized X. Testbench-local variables take `=`. (1.2 explains the regions; this exact race
+   is G9's cousin.)
+4. **`{8'hf, 8'hf, 8'hf}` is a 24-bit concatenation.** Assigned to a 512-bit vector it is
+   zero-extended: bits `[23:0]` get `0F0F0F`, the other 488 bits are 0. No warning. To fill every
+   element you replicate (`{64{8'hF}}`) or, for an unpacked array, use an assignment pattern
+   (`'{default: 8'hF}`). Note `'{` versus `{`: the apostrophe means "assignment pattern for an
+   aggregate", the bare brace means "bit concatenation", and they are not interchangeable.
+
+The corrected program shows both layouts side by side
+([`code/01-fundamentals/multidim_demo.sv`](../../code/01-fundamentals/multidim_demo.sv)):
+
+```systemverilog
+module multidim_demo;
+  initial begin
+    logic [7:0][7:0][7:0] cube_p;   // 3-D PACKED: one 512-bit vector, [plane][row][bit]
+    logic [7:0] cube_u [8][8];      // 3-D UNPACKED: 8x8 separate 8-bit elements
+
+    cube_p = '0;
+    cube_p[0][0] = 8'hF;            // element [0][0] is bits [7:0] of the vector
+    cube_p[7][7] = 8'hA5;           // bits [511:504]
+    $display("packed: %h", cube_p);
+    $display("packed slice [7] = %h, [7][7] = %h", cube_p[7], cube_p[7][7]);
+
+    cube_u = '{default: 8'h0};      // assignment pattern
+    cube_u[0][0] = 8'hF;
+    cube_u[1] = '{8{8'hFF}};        // whole row via replication inside a pattern
+    $display("unpacked: %p", cube_u);
+
+    foreach (cube_u[i, j])          // two indexes, one loop: note the comma form for unpacked dims
+      if (cube_u[i][j] != 0) $display("cube_u[%0d][%0d] = %h", i, j, cube_u[i][j]);
+    $finish;
+  end
+endmodule
+```
+
+How to choose between them: packed when you will treat the whole thing as a number or a bus (send it
+through a port, compare it in one `==`, slice arbitrary bit ranges). Unpacked when it is a
+collection you index element by element (a memory, a lookup table, a frame buffer). Mixed is common
+and correct: `logic [7:0] mem [1024]` is a memory of bytes, and `logic [3:0][7:0] word [256]` is a
+memory of 32-bit words that you can also address byte-wise.
+
 ## Dynamic data structures: the verification engineer's toolbox
 
 These three types are why SystemVerilog testbenches are so much shorter than Verilog ones. Each is a
