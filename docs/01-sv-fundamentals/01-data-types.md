@@ -258,8 +258,67 @@ pkt_t p = '{id: 1, name: "hello", payload: '{1,2,3}};
 A `union` overlays several views on the same storage. Packed unions are occasionally useful for
 "interpret this word as either format A or format B." Tagged unions exist but are rare in practice.
 
-`typedef` names a type. Use it *everywhere* for widths and structs: `typedef logic [ADDR_W-1:0]
-addr_t;`. Later, when the address width changes, you change one line.
+### `typedef`: give a type a name
+
+`typedef` creates a name for an existing type. It does not create a *new* type: `addr_t` below is
+still `logic [31:0]` and is assignment-compatible with any other 32-bit vector. What you gain is a
+single place where the width is decided.
+
+```systemverilog
+typedef logic [ADDR_W-1:0] addr_t;     // "addr_t" now means "a logic vector ADDR_W bits wide"
+addr_t a, b;                            // same as: logic [ADDR_W-1:0] a, b;
+```
+
+Read it as `typedef <existing type> <new name>;`. The `_t` suffix is convention, not syntax, but
+use it: it tells the reader "this is a type, not a signal."
+
+The reason `typedef` matters is not one declaration, it is *hundreds*. A bus address appears in the
+DUT ports, the interface, the transaction class, the scoreboard's associative array key, the
+covergroup, and the assertions. Written as `logic [31:0]` in each place, changing the width means a
+grep-and-hope edit across the codebase and a bug wherever you missed one. Written as `addr_t`, the
+width lives in one line, and the natural home for that line is a package:
+
+```systemverilog
+package my_pkg;
+  parameter int ADDR_W = 32;
+  parameter int DATA_W = 64;
+
+  typedef logic [ADDR_W-1:0] addr_t;
+  typedef logic [DATA_W-1:0] data_t;
+endpackage
+
+module mem_ctrl
+  import my_pkg::*;          // import BEFORE the port list so the port types are visible
+(
+  input  addr_t addr,
+  input  data_t wdata,
+  output data_t rdata
+);
+  // ...
+endmodule
+```
+
+Things to notice:
+
+- **The `import` sits between the module name and the port list.** An `import` inside the module
+  body would come *after* the ports, and `addr_t` would be undefined when the compiler reads
+  `input addr_t addr`. This header-import position exists precisely for package types in ports.
+  (For everything else, 1.5's advice stands: import inside the module, not at compilation-unit
+  scope.)
+- **The package is the single source of truth.** The testbench imports the same package, so the
+  driver's `addr_t` and the DUT's `addr_t` cannot disagree. Change `ADDR_W` to 40 and the DUT, the
+  interface, the transaction class, and the checkers all follow.
+- **Package `parameter`s are constants, not overridable.** `mem_ctrl` above cannot be instantiated
+  with a different address width; that is the trade-off for global agreement. If a block needs
+  per-instance widths, keep a module `parameter` and derive a local typedef:
+  `typedef logic [ADDR_W-1:0] addr_t;` inside the module, where `ADDR_W` is the module parameter.
+  Chapter 7 discusses when each is appropriate.
+- **`typedef` reads better than the raw type in every direction.** `input addr_t addr` says what
+  the port *is*; `input logic [31:0] addr` says how wide it is and leaves you to guess the rest.
+  Ports, function arguments, and class properties all benefit.
+
+The same mechanism names structs, enums, and even other typedefs: `typedef instr_t insn_word_t;`.
+Anything you write twice deserves a name.
 
 ## Enumerated types
 

@@ -91,7 +91,9 @@ endmodule
 | `dist`, `->`, `solve before`, `soft`, `randc` | Constraint vocabulary | [5.1](../05-constrained-random/01-randomization-and-constraints.md), [Appendix B](B-constraints-cheatsheet.md) |
 | `covergroup`, `coverpoint`, `bins`, `cross` | Functional coverage | [4.2 Covergroups](../04-coverage/02-covergroups-in-depth.md) |
 | `property`, `sequence`, `\|->`, `\|=>`, `##n`, `$rose`, `$past` | Concurrent assertions | [3.2](../03-sva/02-sequences-and-properties.md), [Appendix A](A-sva-cheatsheet.md) |
-| `package`, `import`, `` `include ``, `typedef`, `enum`, `struct` | Organization and user types | [1.1](../01-sv-fundamentals/01-data-types.md#structs-unions-and-typedef), [1.5](../01-sv-fundamentals/05-modules-packages-interfaces.md) |
+| `typedef logic [W-1:0] name_t;` | Name a type once, use it in ports, classes, interfaces, checkers; put it in a package so DUT and TB agree | [1.1 typedef](../01-sv-fundamentals/01-data-types.md#typedef-give-a-type-a-name) |
+| `module m import pkg::*; (ports)` | Header import: makes package types visible *to the port list* (a body import is too late) | [1.1 typedef](../01-sv-fundamentals/01-data-types.md#typedef-give-a-type-a-name), [1.5](../01-sv-fundamentals/05-modules-packages-interfaces.md) |
+| `package`, `import`, `` `include ``, `enum`, `struct` | Organization and user types | [1.1](../01-sv-fundamentals/01-data-types.md#structs-unions-and-typedef), [1.5](../01-sv-fundamentals/05-modules-packages-interfaces.md) |
 | `$urandom`, `$urandom_range`, `$sformatf`, `$error`, `$fatal`, `$value$plusargs` | Everyday system tasks | [1.4 System tasks](../01-sv-fundamentals/04-tasks-functions-and-scope.md#system-tasks-you-will-use-every-day) |
 
 ## How to read a construct you have never seen
