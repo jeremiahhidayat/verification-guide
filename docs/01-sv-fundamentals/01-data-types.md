@@ -87,6 +87,56 @@ data.delete();                // back to size 0
 
 Use when the size is known before you fill it (a packet payload whose length is a randomized field).
 
+The most common place you will meet a dynamic array is as a class member, where the randomizer picks
+its size for you. A `rand` dynamic array is resized by `randomize()` to satisfy whatever constraint
+you put on `.size()`; you never call `new[]` yourself:
+
+```systemverilog
+class packet;
+  rand byte payload[];                                    // randomized payload as a dynamic array
+  constraint c_len { payload.size() inside {[1:64]}; }    // constrain the length, not the contents
+
+  function void display();
+    $display("packet size = %0d, data = %p", payload.size(), payload);
+  endfunction
+endclass
+
+module scratch;
+  initial begin
+    packet pkt_q[$];   // queue of packet handles
+    packet p;
+
+    repeat (5) begin
+      p = new();
+      assert(p.randomize());  // gets a fresh random size each time
+      pkt_q.push_back(p);
+    end
+
+    foreach (pkt_q[i]) pkt_q[i].display();
+    $finish;
+  end
+endmodule
+```
+
+Three things to notice:
+
+- **The constraint is on `payload.size()`, not on the elements.** Without a size constraint the
+  solver is free to pick size 0 (and usually does). The element values are also randomized because
+  the array itself is `rand`; if you only wanted the length randomized, you would constrain the
+  contents separately or make the elements non-random.
+- **Each `randomize()` call reallocates.** Every packet above gets its own length; printing them
+  shows five different sizes. If you had reused the same handle instead of calling `new()` inside
+  the loop, the queue would hold five copies of the *same* object, all showing the last
+  randomization. Handles are references, not values (see the classes chapter).
+- **`%p` prints the whole aggregate.** It is the quickest way to dump an array, struct, or object
+  during debug without writing a loop.
+
+This pattern (a dynamic array inside a class, a queue of handles outside it) is the skeleton of every
+stimulus generator: the class describes one transaction, the queue is the stream of them.
+Every construct in this example (`rand`, `constraint`, `inside`, `function void`, `new()`,
+`randomize()`, `repeat`, `foreach`, `%p`, `$finish`, ...) is indexed in
+[Appendix G](../appendix/G-construct-index.md) with a pointer to where it is explained.
+
 ### Queues: the most useful type in the language
 
 A queue is a variable-size ordered list with O(1) push/pop at both ends. Declared with `$` as the

@@ -22,6 +22,7 @@ step() {  # name, top, files...
 C="$ROOT/code"
 step "ch1 races"        race_bad          "$C/01-fundamentals/races.sv"
 step "ch1 datatypes"    datatypes_demo    "$C/01-fundamentals/datatypes_demo.sv"
+step "ch1 packet dyn"   packet_dynarray   "$C/01-fundamentals/packet_dynarray.sv"
 step "ch2 fifo_tb"      fifo_tb           "$C/02-basic-tb/fifo.sv" "$C/02-basic-tb/fifo_tb.sv"
 step "ch2 register_tb"  register_tb       "$C/02-basic-tb/register_tb.sv"
 step "ch3 sva bound"    fifo_tb           "$C/02-basic-tb/fifo.sv" "$C/03-sva/fifo_sva.sv" "$C/03-sva/fifo_bind.sv" "$C/02-basic-tb/fifo_tb.sv"

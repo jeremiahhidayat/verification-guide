@@ -155,6 +155,32 @@ break; continue;                          // work in all loops
 return;                                   // exit a task/function early
 ```
 
+### `foreach` and `repeat`: the two testbench loops
+
+`for` is for hardware-shaped code (a fixed count). Testbench code mostly walks containers or does
+something N times, and those get their own loops:
+
+```systemverilog
+byte  data[];  byte q[$];  int hist[string];
+
+foreach (data[i])  data[i] = i;             // i is declared FOR you: no `int i`, scope is the loop
+foreach (q[i])     $display("%0d", q[i]);   // queues: i runs 0..size()-1 in order
+foreach (hist[k])  $display("%s=%0d", k, hist[k]);  // associative: k takes each existing key, sorted
+foreach (m[i][j])  ...                      // multi-dimensional: one loop, nested indexes
+foreach (m[i])     ...                      // outer dimension only; m[i] is a whole row
+
+repeat (5) begin                            // do this 5 times, no counter needed
+  p = new();  assert (p.randomize());  q.push_back(p);
+end
+repeat (10) @(posedge clk);                 // the idiom for "wait 10 cycles"
+```
+
+`foreach` reads the array's size when it starts. Pushing or deleting inside the loop does not
+re-scan (see G16 in 1.6); use `while (q.size())` with `pop_front()` when you consume as you go.
+`repeat (n)` evaluates `n` once; a `repeat (0)` body never runs. Pick `foreach` when you touch every
+element, `repeat` when the count matters and the index does not, `for` when you need the index to
+step in some other pattern.
+
 `unique case` / `priority case` / `unique if`: RTL constructs that tell synthesis (and simulation
 checkers) that exactly one branch matches (unique) or that priority encoding is intended. In
 simulation, `unique case` reports a runtime warning if no branch or more than one branch matches:

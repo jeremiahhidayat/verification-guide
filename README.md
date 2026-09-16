@@ -23,7 +23,7 @@ If you only remember one idea from the whole guide, make it this one:
   guide tells you which lines to change to see a failure.
 - Each chapter ends with **"Interview angle"** (what an interviewer is really probing when they ask
   about this topic) and **"Mentor's notes"** (opinions, tradeoffs, war stories).
-- Chapter 10 is a question bank with worked answers. The appendix holds cheat sheets, tool commands, a glossary, and a reading list.
+- Chapter 10 is a question bank with worked answers. The appendix holds cheat sheets, tool commands, a glossary, a reading list, and a construct index keyed to a small testbench.
 
 ## Study path
 
@@ -40,7 +40,7 @@ If you only remember one idea from the whole guide, make it this one:
 | 8 | [Formal verification](docs/08-formal/README.md) | Know what a proof is, write formal-friendly properties, use assumptions and abstractions, converge and sign off |
 | 9 | [Industry-scale verification](docs/09-industry-practice/README.md) | Verification planning, regressions, CI, debug, block-to-SoC, emulation, GLS, low power, CDC, metrics, signoff |
 | 10 | [Interview prep](docs/10-interview-prep/README.md) | Answer and *explain* the classic questions; whiteboard SVA, constraints, and testbench design |
-| A | [Appendix](docs/appendix/README.md) | Cheat sheets for SVA, constraints, UVM, tool commands; glossary; reading list |
+| A | [Appendix](docs/appendix/README.md) | Cheat sheets for SVA, constraints, UVM, tool commands; glossary; reading list; construct index |
 
 ## Repository layout
 

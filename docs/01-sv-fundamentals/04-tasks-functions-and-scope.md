@@ -143,6 +143,35 @@ command line (`-timescale 1ns/1ps`) and keep it consistent between DUT and testb
 | `$cast` | Dynamic cast (section 1.1). |
 | `$assertoff`, `$asserton`, `$assertkill` | Control assertions during reset or in specific tests. |
 
+### Format specifiers
+
+`$display`, `$sformatf`, `$error`, and the UVM message macros all use the same printf-style
+specifiers. Learn `%p` first: it prints any aggregate (array, queue, struct, class object) without a
+loop, which makes it the fastest debug tool in the language.
+
+| Specifier | Prints | Note |
+|---|---|---|
+| `%d`, `%0d` | Decimal | `%d` pads to the type's max width (`int` gives 11 columns); `%0d` strips the padding. Use `%0d` |
+| `%h` / `%x`, `%0h` | Hex | Lowercase; `%H` uppercase. Width padded to the vector size unless `0` |
+| `%b`, `%o` | Binary, octal | 4-state values show `x`/`z` per bit |
+| `%s` | String, or a vector interpreted as ASCII | |
+| `%c` | One character | |
+| `%t` | Time, formatted per `$timeformat` | Pass `$time` or `$realtime`; `%0t` trims |
+| `%f`, `%e`, `%g` | Real | `%.2f` for two decimals |
+| `%p` | Any aggregate, as an assignment pattern | `'{1, 2, 3}` for arrays, `'{a:1, b:2}` for structs and objects; `%0p` drops the whitespace |
+| `%m` | Hierarchical name of the calling scope | Put it in every checker message so you know *which* instance fired |
+| `%u`, `%z` | Raw binary (2-state / 4-state) | File I/O only |
+| `%%` | Literal `%` | |
+
+```systemverilog
+$display("[%0t] %m: size=%0d data=%p", $realtime, payload.size(), payload);
+// [125000] tb.gen: size=3 data='{'h5a, 'h00, 'hff}
+```
+
+Arguments with no specifier at all (`$display(x, y)`) print in decimal separated by nothing; always
+give a format string. A mismatch between specifiers and arguments is a runtime warning, not an
+error, so the sim keeps going with garbage in the log.
+
 ### `$random` vs `$urandom`
 
 `$random` is a 1995 leftover: signed 32-bit, a single global seed, poor distribution, and it is *not*

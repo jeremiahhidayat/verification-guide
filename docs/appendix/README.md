@@ -8,3 +8,4 @@
 | [D. Tool commands](D-tool-commands.md) | Questa, VCS, Xcelium, Verilator, Icarus, SymbiYosys: compile, run, coverage, waves, seeds |
 | [E. Glossary](E-glossary.md) | Terms and acronyms |
 | [F. Reading list](F-reading-list.md) | Books, papers, sites, standards |
+| [G. Construct index](G-construct-index.md) | Every keyword, method, and system task in a 30-line testbench: what it does, how to use it, where the guide explains it |
